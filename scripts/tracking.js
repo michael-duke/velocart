@@ -5,7 +5,7 @@ import { formatDeliveryDate } from "./utils/date.js";
 import { handleError } from "./utils/errors.js";
 import { renderCartLoader, renderTrackingSkeleton } from "./utils/loader.js";
 import { calculateDeliveryProgress } from "./utils/progress.js";
-import { setupSearchRedirect } from "./utils/search.js";
+import { initializeSearch } from "./utils/search.js";
 import { getCachedProducts } from "./utils/cache.js";
 
 loadPage();
@@ -14,18 +14,17 @@ async function loadPage() {
   const cachedData = getCachedProducts();
   const controller = new AbortController();
   const controllerTimeout = setTimeout(() => controller.abort(), 8000);
-  
+
   // ONLY show the skeleton if we don't have cache
   if (!cachedData) {
     renderTrackingSkeleton();
     renderCartLoader();
-    
+
     // Create a 2.3-second delay
     await new Promise((resolve) => {
       setTimeout(resolve, 2300);
     });
   }
-
 
   try {
     await loadProductsFetch({ signal: controller.signal });
@@ -33,7 +32,7 @@ async function loadPage() {
 
     renderOrderTracking();
     updateCartQuantity();
-    setupSearchRedirect();
+    initializeSearch();
   } catch (error) {
     console.log("Unexpected error. Please try again later.", error);
 

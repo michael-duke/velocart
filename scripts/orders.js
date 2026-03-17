@@ -6,7 +6,7 @@ import { formatOrderDate } from "./utils/date.js";
 import { handleError } from "./utils/errors.js";
 import formatCurrency from "./utils/money.js";
 import { renderOrdersSkeleton } from "./utils/loader.js";
-import { setupSearchRedirect } from "./utils/search.js";
+import { initializeSearch } from "./utils/search.js";
 
 loadPage();
 
@@ -19,7 +19,7 @@ async function loadPage() {
   try {
     // Create a 2.3-second delay
     await new Promise((resolve) => {
-      setTimeout(resolve, 2300);
+      setTimeout(resolve, 1800);
     });
 
     await loadProductsFetch({ signal: controller.signal });
@@ -27,7 +27,7 @@ async function loadPage() {
 
     renderOrdersGrid();
     updateCartQuantity();
-    setupSearchRedirect();
+    initializeSearch();
   } catch (error) {
     console.log("Critical Load Error: ", error);
 
