@@ -1,181 +1,167 @@
 import { getFilteredProducts } from "../../data/products.js";
 
-// export function attachSearchListeners(onSearch) {
-//   const searchButton = document.querySelector(".search-button");
-//   const searchBar = document.querySelector(".search-bar");
-//   const isHomePage = document.querySelector(".products-grid");
+const getSearchElements = () => ({
+  bar: document.querySelector(".search-bar"),
+  button: document.querySelector(".search-button"),
+  clear: document.querySelector(".clear-search-button"),
+  dropdown: document.querySelector(".search-results-dropdown"),
+  grid: document.querySelector(".products-grid"),
+});
 
-//   if (!searchButton || !searchBar) return;
+export function toggleClearButton() {
+  const { bar, clear } = getSearchElements();
+  if (!clear || !bar) return;
 
-//   // Commit Action (Click/Enter)
-//   const commit = () => {
-//     onSearch(searchBar.value);
-//   };
-
-//   // Click search
-//   searchButton.addEventListener("click", commit);
-
-//   // Enter key search
-//   searchBar.addEventListener("keydown", (event) => {
-//     if (event.key === "Enter") commit();
-//   });
-
-//   // Real-time debounced search
-//   let searchTimeout;
-//   searchBar.addEventListener("input", () => {
-//     if (isHomePage) {
-//       clearTimeout(searchTimeout);
-//       searchTimeout = setTimeout(() => onSearch(searchBar.value), 300);
-//     }
-//   });
-// }
-
-export function toggleClearButton(query) {
-  const clearButton = document.querySelector(".clear-search-button");
-  if (clearButton) {
-    clearButton.style.display = query.trim() ? "block" : "none";
-  }
+  const hasText = bar.value.trim().length > 0;
+  hasText ? clear.classList.add("visible") : clear.classList.remove("visible");
 }
 
-export function setupSearch(onSearch, products) {
-  const searchBar = document.querySelector(".search-bar");
-  const searchButton = document.querySelector(".search-button");
-  const clearButton = document.querySelector(".clear-search-button");
-  const dropdown = document.querySelector(".search-results-dropdown");
-  const productsGrid = document.querySelector(".products-grid");
-
-  if (!searchButton || !searchBar) return;
+export function setupSearch(onSearch) {
+  const el = getSearchElements();
+  if (!el.button || !el.bar) return;
 
   const hideDropdown = () => {
-    dropdown.style.display = "none";
+    el.dropdown.style.display = "none";
   };
 
-  const toggleClearButton = (query) => {
-    if (clearButton) clearButton.style.display = query ? "block" : "none";
-  };
+  const getNormalized = () => el.bar.value.trim().toLowerCase();
 
-  // 2. Commit Action (Click/Enter)
+  toggleClearButton();
+
+  // Commit Action (Click/Enter)
   const commit = () => {
-    onSearch(searchBar.value);
+    onSearch(el.bar.value);
     hideDropdown();
   };
 
   // Click & Enter Search
-  searchButton.addEventListener("click", commit);
-  searchBar.addEventListener("keydown", (e) => {
+  el.button.addEventListener("click", commit);
+  el.bar.addEventListener("keydown", (e) => {
     if (e.key === "Enter") commit();
   });
 
   // Real-time debounced search
   let searchTimeout;
-  searchBar.addEventListener("input", () => {
-    const normalizedQuery = searchBar.value.trim().toLowerCase();
-
-    // Toggle Clear Button visibility
-    toggleClearButton(normalizedQuery);
+  el.bar.addEventListener("input", () => {
+    const normalizedQuery = getNormalized();
+    toggleClearButton();
 
     // Debounce if we are already on the index.html page
-    if (productsGrid) {
+    if (el.grid) {
       clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        onSearch(normalizedQuery);
-      }, 300);
+      searchTimeout = setTimeout(() => onSearch(el.bar.value), 300);
     }
-
     // Other Pages (Show Dropdown)
     else if (normalizedQuery) {
-      const matches = getFilteredProducts(normalizedQuery, products);
-      if (matches.length > 0) {
-        renderDropdown(matches, dropdown, searchBar, commit, toggleClearButton);
-      } else {
-        hideDropdown();
-      }
+      const matches = getFilteredProducts(normalizedQuery);
+      renderDropdown(matches, el, commit);
     } else {
       hideDropdown();
     }
   });
 
   // Clear Button
-  clearButton.addEventListener("click", () => {
-    searchBar.value = "";
-    toggleClearButton("");
+  el.clear?.addEventListener("click", () => {
+    el.bar.value = "";
+    toggleClearButton();
     hideDropdown();
-    if (productsGrid) onSearch(""); // Reset home grid
-    searchBar.focus();
+    if (el.grid) onSearch("");
+    el.bar.focus();
   });
 
-  // Click Outsite then close
+  // Click Outside
   document.addEventListener("click", (e) => {
-    if (!searchBar.contains(e.target) && !dropdown.contains(e.target)) {
+    const isClickInside =
+      el.bar.contains(e.target) || el.dropdown.contains(e.target);
+
+    if (!isClickInside) {
       hideDropdown();
+    } else {
+      const normalizedQuery = getNormalized();
+      if (normalizedQuery) {
+        const matches = getFilteredProducts(normalizedQuery);
+        renderDropdown(matches, el, commit);
+      }
     }
   });
 }
 
-function renderDropdown(
-  matches,
-  dropdown,
-  searchBar,
-  performSeach,
-  toggleClearButton,
-) {
-  if (matches.length === 0) {
-    dropdown.style.display = "none";
-    return;
-  }
+function renderDropdown(matches, el, performSearch) {
+  if (matches.length === 0) return (el.dropdown.style.display = "none");
 
-  dropdown.style.display = "block";
-  dropdown.innerHTML = matches
+  el.dropdown.style.display = "block";
+  el.dropdown.innerHTML = matches
     .slice(0, 6)
     .map(
       (p) => `
-    <div class="dropdown-item" data-id="${p.id}">
-      <img src="${p.image}">
-      <div class="dropdown-item-name">${p.name}</div>
-    </div>
-  `,
+      <div class="dropdown-item" data-id="${p.id}">
+        <img src="${p.image}">
+        <div class="dropdown-item-name">${p.name}</div>
+      </div>
+    `,
     )
     .join("");
 
-  dropdown.querySelectorAll(".dropdown-item").forEach((item) => {
-    item.addEventListener("click", () => {
+  el.dropdown.onclick = (e) => {
+    const item = e.target.closest(".dropdown-item");
+    if (item) {
       const selectedName = item.querySelector(".dropdown-item-name").innerText;
-      searchBar.value = selectedName;
-      toggleClearButton(selectedName);
-      performSeach();
-    });
-  });
+      el.bar.value = selectedName;
+      performSearch();
+    }
+  };
 }
 
 // This helper handles the "Redirect vs Filter" logic
 export function processSearch(query, renderCallback) {
-  const normalizedQuery = query.trim().toLowerCase();
   const productsGrid = document.querySelector(".products-grid");
 
+  // On Orders or Tracking -> Redirect
   if (!productsGrid) {
-    // We are on Orders or Tracking -> Redirect
     window.location.href = `index.html?search=${encodeURIComponent(query)}`;
     return;
   }
 
-  // We are on Home -> Update URL silently and Filter
+  // On Home -> Update URL silently and Filter
   const newUrl = new URL(window.location);
-  if (normalizedQuery) {
-    newUrl.searchParams.set("search", normalizedQuery);
-  } else {
-    newUrl.searchParams.delete("search");
-  }
+  query.trim()
+    ? newUrl.searchParams.set("search", query)
+    : newUrl.searchParams.delete("search");
   window.history.replaceState({}, "", newUrl);
 
+  const normalizedQuery = query.trim().toLowerCase();
   const filteredProducts = getFilteredProducts(normalizedQuery);
+
+  if (filteredProducts.length === 0) {
+    console.log(filteredProducts.length, "filt");
+    console.log(productsGrid);
+    productsGrid.classList.remove("fade-entrance");
+    productsGrid.innerHTML = `
+      <div class="no-results">
+        <p>No products match "<strong>${query}</strong>"</p>
+        <button class="back-link button-primary" id="reset-search">View all products</button>
+      </div>
+    `;
+
+    document.getElementById("reset-search").onclick = () => {
+      const el = getSearchElements();
+      el.bar.value = "";
+      processSearch("", renderCallback);
+      toggleClearButton();
+    };
+    return;
+  }
 
   productsGrid.innerHTML = "";
   renderCallback(filteredProducts);
 }
 
-export function setupSearchRedirect() {
-  // On the orders page, we always want to redirect to home
+/**
+ * Attaches the listeners and handles the redirection/filtering logic
+ * automatically based on which page the user is on.
+ */
+export function initializeSearch(uiRenderer) {
   setupSearch((query) => {
-    window.location.href = `index.html?search=${encodeURIComponent(query)}`;
+    processSearch(query, uiRenderer);
   });
 }

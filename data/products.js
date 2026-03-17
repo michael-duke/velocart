@@ -34,6 +34,7 @@ export class Product {
 
 export function setProducts(newProducts) {
   products = newProducts;
+  console.log(products);
 }
 
 export function getProduct(productId) {
@@ -599,6 +600,8 @@ export function rehydrateProducts(data) {
       return new Clothing(productDetails);
     }
     if (productDetails.keywords.includes("appliances")) {
+      productDetails.warrantyLink = "images/appliance-warranty.png";
+      productDetails.instructionsLink = "images/appliance-instructions.png";
       return new Appliance(productDetails);
     }
     return new Product(productDetails);

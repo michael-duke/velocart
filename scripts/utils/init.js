@@ -11,7 +11,6 @@ export function intializeApp(dataList, uiRenderer) {
   // Check URL on load for initial search
   const url = new URL(window.location.href);
   const initialSearch = url.searchParams.get("search");
-  console.log(initialSearch,'init searh val')
   if (initialSearch) {
     // Use the same processSearch logic for the initial load
     processSearch(initialSearch, uiRenderer);
