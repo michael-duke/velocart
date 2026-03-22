@@ -3,7 +3,9 @@ function formatCurrency(priceCents) {
 }
 
 export function formatTaxCent(priceCents) {
-  return (priceCents * 10) / 100;
+  const taxRate = 0.13; // 13% HST for Ontario
+  const taxCents = priceCents * taxRate;
+  return taxCents;
 }
 
 export default formatCurrency;

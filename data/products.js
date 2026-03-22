@@ -34,7 +34,6 @@ export class Product {
 
 export function setProducts(newProducts) {
   products = newProducts;
-  console.log(products);
 }
 
 export function getProduct(productId) {

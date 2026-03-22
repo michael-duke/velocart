@@ -12,10 +12,12 @@ document
   ?.addEventListener("click", async (event) => {
     if (event.target.classList.contains("place-order-button")) {
       const order = await placeOrder({ cart: cart.items });
-      addOrder(order);
-      // Empty the cart after placing order
-      clearCart();
-      window.location.href = "orders.html";
+      if (order) {
+        addOrder(order);
+        // Empty the cart after placing order
+        clearCart();
+        window.location.href = "orders.html";
+      }
     }
   });
 
