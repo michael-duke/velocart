@@ -19,11 +19,25 @@ export async function placeOrder(cart) {
       body: JSON.stringify(cart),
     });
 
-    if (!response.ok) throw new Error("Order failed. Please try again");
+    if (!response.ok) {
+      const errorData = await response.json();
+
+      throw {
+        status: response.status,
+        message: errorData.errorMessage || "Order failed. Please try again",
+        details: errorData,
+      };
+    }
     const order = await response.json();
     return order;
   } catch (error) {
-    console.log("Error placing order: " + error);
+    console.log(
+      "Status:",
+      error.status,
+      error.message,
+      "Details:",
+      error.details,
+    );
   }
 }
 
