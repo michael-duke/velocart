@@ -57,7 +57,6 @@ export function calculateTotalQuantity() {
     (total, cartItem) => total + cartItem.quantity,
     0,
   );
-  console.log();
   return cart.totalQuantity;
 }
 
@@ -105,8 +104,10 @@ export function updateDeliveryOption(productId, newDeliveryOptionId) {
 
   if (!cartItem) return;
 
-  cartItem.deliveryOptionId = newDeliveryOptionId;
-  saveToStorage();
+  if (cartItem.deliveryOptionId !== newDeliveryOptionId) {
+    cartItem.deliveryOptionId = newDeliveryOptionId;
+    saveToStorage();
+  }
 }
 
 export function saveToStorage() {
