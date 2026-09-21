@@ -151,6 +151,9 @@ class Cart {
     console.log("Saving to store...");
     localStorage.setItem(this.#localStorageKey, JSON.stringify(this.items));
   }
+  printCartKey() {
+    console.log(`Cart type: ${this.#localStorageKey}`);
+  }
 }
 
 setProducts([
@@ -215,3 +218,4 @@ console.log(businessCart);
 businessCart.updateDeliveryOption("83d4ca15-0f35-48f5-b7a3-1ea210004f2e", "3");
 console.log("Deliver Option Updated ->");
 console.log(businessCart);
+businessCart.printCartKey();
